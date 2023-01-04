@@ -135,11 +135,19 @@
     <Resource Include="Images\the end.JPG" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Media\Miss.wav" />
+    <Content Include="Media\Miss.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Physics\FarseerPhysics.dll" />
-    <Content Include="Media\Pop3.wav" />
-    <Content Include="Media\Pop2.wav" />
-    <Content Include="Media\Pop1.wav" />
+    <Content Include="Media\Pop3.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Media\Pop2.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Media\Pop1.wav">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Sprites\BackGround.jpg" />
     <Resource Include="Sprites\BlockWall.PNG" />
     <Resource Include="Sprites\Block1.PNG" />
