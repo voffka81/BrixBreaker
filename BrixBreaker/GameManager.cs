@@ -1,4 +1,5 @@
-﻿using System;
+﻿using PropertyChanged;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Controls;
@@ -7,6 +8,7 @@ using WPF.Sound;
 
 namespace CrackOut
 {
+    [AddINotifyPropertyChangedInterface]
     public class GameManager
     {
         public enum State { Menu, StartGame, InGame, GameOver };
@@ -20,12 +22,11 @@ namespace CrackOut
         int NumOfColumns = 15;//14
 
         DateTime lastTick;
-        bool isPaused = false;
         int iScores = 0;
         bool bGameOver = false;
-        int _lives = 3;
 
-        public int Lives => _lives;
+
+        public int Lives { get; set; }
 
         public Canvas GameField { get; set; }
 
@@ -41,9 +42,6 @@ namespace CrackOut
 
             _ball = new BallControl(GameField);
             _rocket = new Rocket(GameField);
-
-
-
 
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(1);
@@ -96,6 +94,7 @@ namespace CrackOut
                     _rocket.Draw();
                     StartLevel();
                     _gameState = State.InGame;
+                    Lives = 3;
                     break;
                 case State.InGame:
                     DateTime now = DateTime.Now;
@@ -112,9 +111,6 @@ namespace CrackOut
                 default:
                     if (bGameOver)
                     {
-                        _lives = 3;
-                        bGameOver = false;
-                        iScores = 0;
                         //UCBall.fballSpeed = 1.5f;
                         StartLevel();
                     }
@@ -150,7 +146,7 @@ namespace CrackOut
             {
                 _soundManager.PlaySync("Miss");
 
-                _lives--;
+                Lives--;
                 fNextPositionX = 300;
                 fNextPositionY = (float)(GameField.ActualHeight / 2);
             }
@@ -216,8 +212,8 @@ namespace CrackOut
             if (!isHit)
                 _ball.position = new Vector2(fNextPositionX, fNextPositionY);
 
-            if (_lives < 0)
-                bGameOver = true;
+            if (Lives < 0)
+                _gameState = State.GameOver;
         }
 
         private float Lerp(float value1, float value2, float amount)

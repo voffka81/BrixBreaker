@@ -14,7 +14,7 @@
             <ImageBrush x:Name="bgImage" ImageSource="Sprites/background.jpg"></ImageBrush>
         </Grid.Background>
         <Grid.RowDefinitions>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="30"/>
             <RowDefinition Height="32"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="20"/>
