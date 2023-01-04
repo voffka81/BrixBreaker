@@ -1,18 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Net.NetworkInformation;
-using System.Media;
-using System.IO;
-using System.Threading;
 using System.ComponentModel;
-using System.Windows.Threading;
+using System.IO;
+using System.Linq;
+using System.Media;
+using System.Threading;
 using System.Windows;
+using System.Windows.Threading;
 
 namespace WPF.Sound
 {
-    
+
     /// <summary>
     /// Works with sound files
     /// </summary>
@@ -20,7 +18,7 @@ namespace WPF.Sound
     {
         static Dictionary<string, MediaFile> SoundBank = new Dictionary<string, MediaFile>();
         static SoundPlayer _player;
-        
+
         private static AudionEndsDelegate _AudionEnds;
         public static event AudionEndsDelegate AudionEnds
         {
@@ -28,7 +26,7 @@ namespace WPF.Sound
             {
                 if (_AudionEnds != null || value.GetInvocationList().Length > 1)
                 {
-                    _AudionEnds = (AudionEndsDelegate)Delegate.Remove(_AudionEnds,_AudionEnds);
+                    _AudionEnds = (AudionEndsDelegate)Delegate.Remove(_AudionEnds, _AudionEnds);
                 }
                 _AudionEnds = (AudionEndsDelegate)Delegate.Combine(_AudionEnds, value);
             }
@@ -46,17 +44,18 @@ namespace WPF.Sound
         public void LoadSounds()
         {
             // Load all sound files to memory
-            string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory()+@"/Media/");
+            string[] filePaths = Directory.GetFiles(Directory.GetCurrentDirectory() + @"/Media/");
             //string[] filePaths = Directory.GetFiles(@"C:\Windows\Media\");
             foreach (string fileName in filePaths)
             {
                 if (fileName.Contains(".wav"))
                 {
                     MediaFile Media = new MediaFile(fileName);
-                    SoundBank.Add(Media.ActualName, Media);
+                    if (!SoundBank.Keys.Contains(Media.ActualName))
+                        SoundBank.Add(Media.ActualName, Media);
                 }
             }
-           
+
         }
         static BackgroundWorker bg;
         static Thread t;
@@ -66,13 +65,13 @@ namespace WPF.Sound
         {
             //bg = new BackgroundWorker();
 
-            
+
             _player.Tag = file;
             _player.Stream = new MemoryStream();
             _player.Stream.Write(SoundBank[file].AudioData, 0, SoundBank[file].AudioData.Length);
             _player.Stream.Seek(0, SeekOrigin.Begin);
-           
-            
+
+
             timer = null;
             timer = new DispatcherTimer();
             timer.Tick += timer_Tick;
@@ -99,12 +98,13 @@ namespace WPF.Sound
             timer.Stop();
             if (_AudionEnds != null && _player.Tag != "Wait")
             {
-                Application.Current.Dispatcher.Invoke(new Action(()=>{
+                Application.Current.Dispatcher.Invoke(new Action(() =>
+                {
                     _AudionEnds();
                 }));
             }
         }
-        
+
         public static void Stop()
         {
             timer.Stop();

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using WPF.Sound;
 
 namespace CrackOut
 {
-    class GameManager
+    public class GameManager
     {
+        public enum State { Menu, StartGame, InGame, GameOver };
+
+        private State _gameState;
         public static SoundManager _soundManager;
 
         List<BrixControl> lstLevel = new List<BrixControl>();
@@ -23,29 +23,33 @@ namespace CrackOut
         bool isPaused = false;
         int iScores = 0;
         bool bGameOver = false;
-        int iLives = 3;
+        int _lives = 3;
 
-        public static BallControl _ball;
-        public static Rocket _rocket;
+        public int Lives => _lives;
+
+        public Canvas GameField { get; set; }
+
+        public BallControl _ball;
+        public Rocket _rocket;
 
         public GameManager()
         {
+            GameField = new Canvas();
+
             _soundManager = new SoundManager();
             _soundManager.LoadSounds();
 
-            _ball = new BallControl();
-            _rocket = new Rocket();
+            _ball = new BallControl(GameField);
+            _rocket = new Rocket(GameField);
 
-            _rocket.position = new Vector2(100, (float)(App.Current.MainWindow as MainWindow).Height - 100);
-            _ball.position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(App.Current.MainWindow as MainWindow).Height - 140);
-            _rocket.Draw();
-            
-            StartLevel();
+
+
 
             DispatcherTimer timer = new DispatcherTimer();
             timer.Interval = TimeSpan.FromMilliseconds(1);
-            timer.Tick += timer_Tick;
+            timer.Tick += UpdateGame;
             timer.Start();
+            _gameState = State.StartGame;
         }
 
         private void StartLevel()
@@ -55,20 +59,21 @@ namespace CrackOut
             {
                 level = sr.ReadToEnd();
                 level = level.Replace("\r\n", string.Empty);
+                level = level.Replace("\n", string.Empty);
             }
             // Init all blocks, set positions and bounding boxes
             for (int y = 0; y < NumOfRows; y++)
                 for (int x = 0; x < NumOfColumns; x++)
                 {
                     BrixType bt = (BrixType)Convert.ToInt32(level[x + (y) * (NumOfColumns)].ToString());
-                    
+
                     if (bt != BrixType.none)
                     {
-                        BrixControl brix = new BrixControl(bt);
+                        BrixControl brix = new BrixControl(bt, GameField);
                         brix.position = new Vector2(
-                            //LeftOffset + Widtg*x
-                        25f     + 48 * x,
-                            //TopOffset + heigth*y
+                        //LeftOffset + Widtg*x
+                        25f + 48 * x,
+                        //TopOffset + heigth*y
                         85f + 16 * y);
 
                         brix.brixBox = new BoundingBox(
@@ -79,50 +84,61 @@ namespace CrackOut
                     }
                 } // for for (int)
 
-            //_ball.Draw();
-          
-            //CompositionTarget.Rendering += new EventHandler(CompositionTarget_Rendering);
         }
 
-        void timer_Tick(object sender, EventArgs e)
+        void UpdateGame(object sender, EventArgs e)
         {
-            DateTime now = DateTime.Now;
-            TimeSpan elapsed = now - lastTick;
-            lastTick = now;
-            CheckCollisions();
-
-            _ball.Height = 32;
-            _ball.Width = 32;
-
-            _ball.Draw();
-
-            if (bGameOver)
+            switch (_gameState)
             {
-                iLives = 3;
-                bGameOver = false;
-                iScores = 0;
-                //UCBall.fballSpeed = 1.5f;
-                StartLevel();
+                case State.StartGame:
+                    _rocket.position = new Vector2(100, (float)GameField.ActualHeight - 50);
+                    _ball.position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(GameField.ActualHeight - 140));
+                    _rocket.Draw();
+                    StartLevel();
+                    _gameState = State.InGame;
+                    break;
+                case State.InGame:
+                    DateTime now = DateTime.Now;
+                    TimeSpan elapsed = now - lastTick;
+                    lastTick = now;
+                    CheckCollisions();
+
+                    _ball.Height = 32;
+                    _ball.Width = 32;
+
+                    _ball.Draw();
+                    break;
+
+                default:
+                    if (bGameOver)
+                    {
+                        _lives = 3;
+                        bGameOver = false;
+                        iScores = 0;
+                        //UCBall.fballSpeed = 1.5f;
+                        StartLevel();
+                    }
+                    break;
             }
         }
 
         private void CheckCollisions()
         {
             //check ball collisions
-            bool isHit=false;
+            bool isHit = false;
             float fNextPositionX = (float)(_ball.position.X) + _ball.fBallMovementX * _ball.fballSpeed;
             float fNextPositionY = (float)(_ball.position.Y) + _ball.fBallMovementY * _ball.fballSpeed;
 
             //with left and right wall
-            if (fNextPositionX < (App.Current.MainWindow as MainWindow).LBorder.Width ||
-                fNextPositionX + _ball.Width >Canvas.GetLeft((App.Current.MainWindow as MainWindow).RBorder))
+            if (fNextPositionX < 0 ||
+                fNextPositionX + _ball.Width > GameField.ActualWidth)
             {
                 _soundManager.Play("Pop2");
                 _ball.fBallMovementX *= -1;
                 isHit = true;
             }
             // Top
-            if (fNextPositionY < Canvas.GetTop((App.Current.MainWindow as MainWindow).UBorder) + (App.Current.MainWindow as MainWindow).UBorder.Height)
+            if (fNextPositionY < 0)
             {
                 _soundManager.Play("Pop2");
                 _ball.fBallMovementY *= -1;
@@ -130,13 +146,13 @@ namespace CrackOut
             }
 
             // Bottom 
-            if (fNextPositionY + _ball.Height > (App.Current.MainWindow as MainWindow).Height)
+            if (fNextPositionY + _ball.Height > GameField.ActualHeight)
             {
                 _soundManager.PlaySync("Miss");
 
-                iLives--;
+                _lives--;
                 fNextPositionX = 300;
-                fNextPositionY = (float)(App.Current.MainWindow as MainWindow).Height / 2;
+                fNextPositionY = (float)(GameField.ActualHeight / 2);
             }
             // with paddle
             BoundingBox ballBox = new BoundingBox(new Vector2(fNextPositionX, fNextPositionY),
@@ -188,7 +204,7 @@ namespace CrackOut
                         _ball.fBallMovementY *= -1;
                     }
                     iScores += 1;
-                    if(brix.Hit())
+                    if (brix.Hit())
                         lstLevel.Remove(brix);
                 }
             }
@@ -197,10 +213,10 @@ namespace CrackOut
             {
                 bGameOver = true;
             }
-            if(!isHit)
-            _ball.position = new Vector2(fNextPositionX, fNextPositionY);
+            if (!isHit)
+                _ball.position = new Vector2(fNextPositionX, fNextPositionY);
 
-            if (iLives < 0)
+            if (_lives < 0)
                 bGameOver = true;
         }
 
@@ -213,6 +229,24 @@ namespace CrackOut
             return ((1 - amount) * value1) + (amount * value2);
         }
 
+        public void UpdateMousePosition(double mousePosX)
+        {
+            if (_gameState == State.InGame)
+            {
+                if (mousePosX != _rocket.position.X)
+                {
+                    if (mousePosX > 0 && (mousePosX + (float)_rocket.Width) < GameField.ActualWidth)
+                        _rocket.position.X = (float)mousePosX;
+
+                    if (mousePosX < 0)
+                        _rocket.position.X = 0;
+                    if (mousePosX > GameField.ActualWidth)
+                        _rocket.position.X = (float)(GameField.ActualWidth - _rocket.Width);
+
+                    _rocket.Draw();
+                }
+            }
+        }
     }
 
 

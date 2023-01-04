@@ -9,8 +9,14 @@
 	<UserControl.Resources>
 	</UserControl.Resources>
 
-	<Canvas>
-		<Image x:Name="Ball" Height="32" Width="32" Source="sprites/ball1.png">
-		</Image>
-	</Canvas>
+        <Ellipse x:Name="Ball" Height="32" Width="32">
+            <Ellipse.Fill>
+                <RadialGradientBrush 
+          GradientOrigin="0.7,0.2" Center=".7,0.2" RadiusX="0.8" RadiusY=".8" >
+                    <GradientStop Color="White" Offset="0" />
+                    <GradientStop Color="#FF6B6767" Offset="0.55" />
+                    <GradientStop Color="#FF292929" Offset="0.95" />
+                </RadialGradientBrush >
+            </Ellipse.Fill>
+        </Ellipse>
 </UserControl>

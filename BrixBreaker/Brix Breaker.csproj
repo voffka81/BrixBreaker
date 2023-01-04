@@ -150,8 +150,6 @@
     </Content>
     <Resource Include="Sprites\BackGround.jpg" />
     <Resource Include="Sprites\BlockWall.PNG" />
-    <Resource Include="Sprites\Block1.PNG" />
-    <Resource Include="Sprites\Block2.PNG" />
     <Resource Include="Sprites\Block3.PNG" />
     <Resource Include="Sprites\Block4.png" />
     <Resource Include="Sprites\бонус.PNG" />
@@ -162,7 +160,6 @@
     <Resource Include="Sprites\бонус5.PNG" />
     <Resource Include="Sprites\бонус6.PNG" />
     <Resource Include="Sprites\Rocket.PNG" />
-    <Resource Include="Sprites\Ball1.PNG" />
     <Resource Include="Sprites\шар2.PNG" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
