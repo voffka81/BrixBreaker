@@ -5,12 +5,12 @@ using System.Windows.Media.Animation;
 
 namespace CrackOut
 {
-    public enum BrixType { none, Orange, Gray, Steel }
+    public enum BrixType { none, Orange, Gray, Green }
     public partial class BrixControl : UserControl
     {
         public Vector2 position = Vector2.Zero;
         public BoundingBox brixBox;
-        public BrixType _BrixType;
+        private BrixType _brixType;
         private Canvas _canvas;
 
         public BrixControl(BrixType brixType, Canvas canvas)
@@ -19,9 +19,9 @@ namespace CrackOut
             // Required to initialize variables
             InitializeComponent();
 
-            _BrixType = brixType;
+            _brixType = brixType;
             string sBrix = string.Empty;
-            switch (_BrixType)
+            switch (_brixType)
             {
                 case BrixType.Orange:
                     sBrix = "Orange";
@@ -29,8 +29,8 @@ namespace CrackOut
                 case BrixType.Gray:
                     sBrix = "Gray";
                     break;
-                case BrixType.Steel:
-                    sBrix = "sprites/Block1.png";
+                case BrixType.Green:
+                    sBrix = "Green";
                     break;
             }
             brixSprite.Fill = Resources[sBrix] as LinearGradientBrush;
@@ -43,27 +43,25 @@ namespace CrackOut
             _canvas.Children.Add(this);
         }
 
-        public bool Hit()
+        public BrixType Hit()
         {
-            bool Remove = false;
             GameManager._soundManager.Play("Pop3");
-            switch (_BrixType)
+            var actualType = _brixType;
+            switch (_brixType)
             {
                 case BrixType.Gray:
-                    _BrixType = BrixType.Orange;
+                    _brixType = BrixType.Orange;
                     brixSprite.Fill = Resources["Orange"] as LinearGradientBrush;
                     break;
 
-                case BrixType.Steel:
+                case BrixType.Green:
                     break;
                 case BrixType.Orange:
                     Erase();
-                    Remove = true;
                     break;
             }
 
-
-            return Remove;
+            return actualType;
         }
 
         public void Erase()

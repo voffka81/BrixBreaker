@@ -5,14 +5,14 @@
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d"
 	x:Class="CrackOut.BallControl"
-	d:DesignWidth="32" d:DesignHeight="32">
+	>
 	<UserControl.Resources>
 	</UserControl.Resources>
 
-        <Ellipse x:Name="Ball" Height="32" Width="32">
+        <Ellipse x:Name="Ball" Width="64" Height="64">
             <Ellipse.Fill>
                 <RadialGradientBrush 
-          GradientOrigin="0.7,0.2" Center=".7,0.2" RadiusX="0.8" RadiusY=".8" >
+          GradientOrigin="0.7,0.2" Center=".7,0.2" RadiusX=".8" RadiusY=".8" >
                     <GradientStop Color="White" Offset="0" />
                     <GradientStop Color="#FF6B6767" Offset="0.55" />
                     <GradientStop Color="#FF292929" Offset="0.95" />

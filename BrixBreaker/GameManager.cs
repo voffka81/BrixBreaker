@@ -22,12 +22,12 @@ namespace CrackOut
         int NumOfColumns = 15;//14
 
         DateTime lastTick;
-        int iScores = 0;
+
         bool bGameOver = false;
 
 
         public int Lives { get; set; }
-
+        public int Scores { get; set; } = 0;
         public Canvas GameField { get; set; }
 
         public BallControl _ball;
@@ -90,7 +90,7 @@ namespace CrackOut
             {
                 case State.StartGame:
                     _rocket.position = new Vector2(100, (float)GameField.ActualHeight - 50);
-                    _ball.position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(GameField.ActualHeight - 140));
+                    _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(GameField.ActualHeight - 140));
                     _rocket.Draw();
                     StartLevel();
                     _gameState = State.InGame;
@@ -101,9 +101,6 @@ namespace CrackOut
                     TimeSpan elapsed = now - lastTick;
                     lastTick = now;
                     CheckCollisions();
-
-                    _ball.Height = 32;
-                    _ball.Width = 32;
 
                     _ball.Draw();
                     break;
@@ -122,27 +119,27 @@ namespace CrackOut
         {
             //check ball collisions
             bool isHit = false;
-            float fNextPositionX = (float)(_ball.position.X) + _ball.fBallMovementX * _ball.fballSpeed;
-            float fNextPositionY = (float)(_ball.position.Y) + _ball.fBallMovementY * _ball.fballSpeed;
+            float fNextPositionX = (float)(_ball.Position.X) + _ball.MovementX * _ball.Speed;
+            float fNextPositionY = (float)(_ball.Position.Y) + _ball.MovementY * _ball.Speed;
 
             //with left and right wall
             if (fNextPositionX < 0 ||
-                fNextPositionX + _ball.Width > GameField.ActualWidth)
+                fNextPositionX + _ball.ActualWidth > GameField.ActualWidth)
             {
                 _soundManager.Play("Pop2");
-                _ball.fBallMovementX *= -1;
+                _ball.MovementX *= -1;
                 isHit = true;
             }
             // Top
             if (fNextPositionY < 0)
             {
                 _soundManager.Play("Pop2");
-                _ball.fBallMovementY *= -1;
+                _ball.MovementY *= -1;
                 isHit = true;
             }
 
             // Bottom 
-            if (fNextPositionY + _ball.Height > GameField.ActualHeight)
+            if (fNextPositionY + _ball.ActualHeight > GameField.ActualHeight)
             {
                 _soundManager.PlaySync("Miss");
 
@@ -151,28 +148,20 @@ namespace CrackOut
                 fNextPositionY = (float)(GameField.ActualHeight / 2);
             }
             // with paddle
-            BoundingBox ballBox = new BoundingBox(new Vector2(fNextPositionX, fNextPositionY),
-                new Vector2((float)_ball.Width, (float)_ball.Height));
+            _ball.CollisionBox.Update(new Vector2(fNextPositionX, fNextPositionY));
 
             BoundingBox paddleBox = new BoundingBox(new Vector2(_rocket.position.X, _rocket.position.Y),
-                new Vector2((float)_rocket.Width, (float)_rocket.Height));
-            //txtScores.Text =paddleBox.min.ToString() + " " + paddleBox.max.ToString(); ;
-            if (ballBox.Intersects(paddleBox))
+                new Vector2((float)_rocket.ActualWidth, (float)_rocket.ActualHeight));
+
+            if (_ball.CollisionBox.Intersects(paddleBox))
             {
                 isHit = true;
                 _soundManager.Play("Pop1");
-                float x = (paddleBox.max.X - (ballBox.min.X + (float)_ball.Width / 2)) / (float)_rocket.Width;
+                float x = (paddleBox.Max.X - (_ball.CollisionBox.Min.X + (float)_ball.ActualWidth / 2)) / (float)_rocket.Width;
                 double theta = Lerp((float)Math.PI / 4, (float)(Math.PI - Math.PI / 4), x);
 
-                _ball.fBallMovementX = (float)Math.Cos(theta);
-                _ball.fBallMovementY = -(float)Math.Sin(theta);
-
-                //UCBall.fBallMovementX += (fNextPositionX - (UCRocket.position.X-45)) / (45 * 3);
-                //UCBall.fBallMovementY = -1;// -ballSpeedVector.Y;
-                //// Move away from the paddle
-                //fNextPositionY -= UCBall.fBallMovementY*UCBall.fballSpeed;
-                //// Normalize vector
-
+                _ball.MovementX = (float)Math.Cos(theta);
+                _ball.MovementY = -(float)Math.Sin(theta);
             }
 
             #region Collision with brix
@@ -180,28 +169,37 @@ namespace CrackOut
             {
                 BrixControl brix = lstLevel[icount];
 
-                if (brix.brixBox.Intersects(ballBox))
+                if (brix.brixBox.Intersects(_ball.CollisionBox))
                 {
                     isHit = true;
                     //Right
-                    if (Math.Abs((brix.brixBox.max.X - ballBox.min.X)) < _ball.fBallCenter)
-                        _ball.fBallMovementX *= -1;
-                    else if (Math.Abs(brix.brixBox.min.X - ballBox.max.X) <
-                                _ball.fBallCenter)
-                        _ball.fBallMovementX *= -1;
+                    if (Math.Abs((brix.brixBox.Max.X - _ball.CollisionBox.Min.X)) < _ball.Center)
+                        _ball.MovementX *= -1;
+                    else if (Math.Abs(brix.brixBox.Min.X - _ball.CollisionBox.Max.X) <
+                                _ball.Center)
+                        _ball.MovementX *= -1;
                     //Bottom
-                    else if (Math.Abs(brix.brixBox.max.Y - ballBox.min.Y) <
-                            _ball.fBallCenter)
-                        _ball.fBallMovementY *= -1;
+                    else if (Math.Abs(brix.brixBox.Max.Y - _ball.CollisionBox.Min.Y) <
+                            _ball.Center)
+                        _ball.MovementY *= -1;
                     //Top
-                    else if (Math.Abs(brix.brixBox.min.Y - ballBox.max.Y) <
-                                _ball.fBallCenter)
+                    else if (Math.Abs(brix.brixBox.Min.Y - _ball.CollisionBox.Max.Y) <
+                                _ball.Center)
                     {
-                        _ball.fBallMovementY *= -1;
+                        _ball.MovementY *= -1;
                     }
-                    iScores += 1;
-                    if (brix.Hit())
-                        lstLevel.Remove(brix);
+                    Scores += 1;
+                    switch (brix.Hit())
+                    {
+                        case BrixType.Green:
+                            fNextPositionY += 16;
+                            _ball.SetSize(32);
+                            break;
+                        case BrixType.Orange:
+                            lstLevel.Remove(brix);
+                            break;
+                    }
+
                 }
             }
             #endregion
@@ -210,7 +208,7 @@ namespace CrackOut
                 bGameOver = true;
             }
             if (!isHit)
-                _ball.position = new Vector2(fNextPositionX, fNextPositionY);
+                _ball.Position = new Vector2(fNextPositionX, fNextPositionY);
 
             if (Lives < 0)
                 _gameState = State.GameOver;

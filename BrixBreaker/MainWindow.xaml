@@ -32,10 +32,10 @@
                 <ColumnDefinition Width="100"/>
             </Grid.ColumnDefinitions>
 
-            <TextBlock Height="32" Text="Scores" Width="74.079" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="18.667" Foreground="#FF1317FB" FontWeight="Bold"/>
-            <TextBlock Grid.Column="1" Height="29" Text="0" Width="63" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="16" FontWeight="Bold" Foreground="#FF1317FB" />
-            <TextBlock Grid.Column="2" Height="32" Text="Lives" Width="60.57" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="18.667" Foreground="#FF1317FB" FontWeight="Bold"  />
-            <TextBlock Grid.Column="3" Height="29" TextWrapping="Wrap" Text="{Binding Lives}" Width="63" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="16" FontWeight="Bold" Foreground="#FF1317FB" />
+            <TextBlock Text="Scores" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="18.667" Foreground="#FF1317FB" FontWeight="Bold"/>
+            <TextBlock Grid.Column="1" Text="{Binding Scores}"  FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="16" FontWeight="Bold" Foreground="#FF1317FB" />
+            <TextBlock Grid.Column="2" Text="Lives" FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="18.667" Foreground="#FF1317FB" FontWeight="Bold"  />
+            <TextBlock Grid.Column="3" Text="{Binding Lives}"  FontFamily="/CrackOut;component/Fonts/Fonts.zip#The Only Exception" FontSize="16" FontWeight="Bold" Foreground="#FF1317FB" />
         </Grid>
         <Rectangle Grid.Row="2" x:Name="LeftBorder" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BorderBrush}"/>
         <Rectangle Grid.Row="2" Grid.Column="2" x:Name="RightBorder" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BorderBrush}"/>

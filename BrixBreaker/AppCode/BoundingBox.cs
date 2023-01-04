@@ -1,32 +1,30 @@
-﻿using System;
-using System.Net;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Ink;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Shapes;
-
-namespace CrackOut
+﻿namespace CrackOut
 {
     public class BoundingBox
     {
-        public Vector2 min = Vector2.Zero;
-        public Vector2 max = Vector2.Zero;
+        private Vector2 _min = Vector2.Zero;
+        private Vector2 _max = Vector2.Zero;
+        private Vector2 _size = Vector2.Zero;
+        public Vector2 Min => _min;
+        public Vector2 Max => _max;
 
-        public BoundingBox(Vector2 min, Vector2 max)
+        public BoundingBox(Vector2 min, Vector2 size)
         {
-            this.min = min;
-            this.max.X = min.X + max.X;
-            this.max.Y = min.Y + max.Y;
+            _size = size;
+            Update(min);
+        }
+
+        public void Update(Vector2 min)
+        {
+            _min = min;
+            _max.X = min.X + _size.X;
+            _max.Y = min.Y + _size.Y;
         }
 
         public bool Intersects(BoundingBox box)
         {
-            return (box.min.X <= this.max.X && box.max.X >= this.min.X &&
-                box.min.Y <= this.max.Y && box.max.Y >= this.min.Y);
+            return (box.Min.X <= _max.X && box.Max.X >= _min.X &&
+                box.Min.Y <= _max.Y && box.Max.Y >= _min.Y);
         }
     }
 }

@@ -7,6 +7,11 @@
 	x:Class="CrackOut.BrixControl"
 	d:DesignWidth="48" d:DesignHeight="16">
     <UserControl.Resources>
+        <LinearGradientBrush x:Key="Green" EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="Green"/>
+            <GradientStop Color="#FFDCFFBB" Offset="0.5"/>
+            <GradientStop Color="Green" Offset="1"/>
+        </LinearGradientBrush>
         <LinearGradientBrush x:Key="Orange" EndPoint="0.5,1" StartPoint="0.5,0">
             <GradientStop Color="Orange"/>
             <GradientStop Color="#FFFFE7BB" Offset="0.5"/>
