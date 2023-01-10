@@ -31,9 +31,6 @@ namespace CrackOut
 
         private DateTime _lastTick = DateTime.Now;
 
-        private bool bGameOver = false;
-
-
         public int Lives { get; set; }
         public int Scores { get; set; } = 0;
         public Canvas GameField { get; set; }
@@ -129,7 +126,8 @@ namespace CrackOut
                     }
                     break;
                 case State.InGame:
-
+                    if (lstLevel.Count == 0)
+                        _gameState = State.GameOver;
                     CheckCollisions();
 
                     foreach (var item in _prizeBoxes.ToArray())
@@ -152,6 +150,8 @@ namespace CrackOut
                     break;
 
                 case State.LostLive:
+                    if (Lives == 0)
+                        _gameState = State.GameOver;
                     Lives -= 1;
                     _prizeBoxes.ForEach(x => x.Erase());
                     _prizeBoxes.Clear();
@@ -159,13 +159,11 @@ namespace CrackOut
                     _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
                     _gameState = State.InGame;
                     break;
-                default:
-                    if (bGameOver)
-                    {
-                        //UCBall.fballSpeed = 1.5f;
-                        RenderLevel();
-                    }
+
+                case State.GameOver:
+                    _gameState = State.InitGame;
                     break;
+                default: break;
             }
         }
 
@@ -223,10 +221,6 @@ namespace CrackOut
                     isHit = HitBrix(ref fNextPositionY, brix);
             }
             #endregion
-            if (lstLevel.Count == 0)
-            {
-                bGameOver = true;
-            }
             if (!isHit)
                 _ball.Position = new Vector2(fNextPositionX, fNextPositionY);
 
@@ -257,17 +251,20 @@ namespace CrackOut
                 }
                 Scores += 1;
 
-                if (_prizeBoxes.Count == 0)
-                    _prizeBoxes.Add(new PrizeBox(GameField, brix.position));
 
-                switch (brix.Hit())
+                switch (brix.Type)
                 {
-
+                    case BrixType.Gray:
+                        brix.SetType(BrixType.Orange);
+                        break;
                     case BrixType.Green:
-                        fNextPositionY += 16;
-
+                        if (_prizeBoxes.Count == 0)
+                            _prizeBoxes.Add(new PrizeBox(GameField, brix.position));
+                        brix.Erase();
+                        lstLevel.Remove(brix);
                         break;
                     case BrixType.Orange:
+                        brix.Erase();
                         lstLevel.Remove(brix);
                         break;
                 }

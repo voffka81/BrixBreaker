@@ -11,7 +11,7 @@ namespace CrackOut
     {
         public Vector2 position = Vector2.Zero;
         public BoundingBox brixBox;
-        private BrixType _brixType;
+        public BrixType Type;
         private Canvas _canvas;
 
         public BrixControl(BrixType brixType, Canvas canvas, float width, float heigth)
@@ -23,9 +23,14 @@ namespace CrackOut
             this.Width = width;
             this.Height = heigth;
 
-            _brixType = brixType;
+            SetType(brixType);
+        }
+
+        public void SetType(BrixType brixType)
+        {
+            Type = brixType;
             string sBrix = string.Empty;
-            switch (_brixType)
+            switch (Type)
             {
                 case BrixType.Orange:
                     sBrix = "Orange";
@@ -45,26 +50,6 @@ namespace CrackOut
             Canvas.SetLeft(this, position.X);
             Canvas.SetTop(this, position.Y);
             _canvas.Children.Add(this);
-        }
-
-        public BrixType Hit()
-        {
-            GameManager._soundManager.Play("Pop3");
-            var actualType = _brixType;
-            switch (_brixType)
-            {
-                case BrixType.Gray:
-                    _brixType = BrixType.Orange;
-                    brixSprite.Fill = Application.Current.MainWindow.Resources["Orange"] as LinearGradientBrush;
-                    break;
-
-                case BrixType.Green:
-                case BrixType.Orange:
-                    Erase();
-                    break;
-            }
-
-            return actualType;
         }
 
         public void Erase()
