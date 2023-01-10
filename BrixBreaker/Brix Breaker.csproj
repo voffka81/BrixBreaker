@@ -30,7 +30,6 @@
     <Content Include="Media\Miss.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Physics\FarseerPhysics.dll" />
     <Content Include="Media\Pop3.wav">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

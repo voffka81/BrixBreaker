@@ -11,19 +11,26 @@ namespace CrackOut
     [AddINotifyPropertyChangedInterface]
     public class GameManager
     {
-        public enum State { Menu, StartGame, InGame, GameOver };
-
+        public enum State { Menu, InitGame, StartCountdown, InGame, GameOver };
+        private TimeSpan _gameElapsed = TimeSpan.Zero;
         private State _gameState;
         public static SoundManager _soundManager;
 
-        List<BrixControl> lstLevel = new List<BrixControl>();
+        public int CountDown { get; set; }
+        public bool CountDownOverlay { get; set; } = true;
+        private DateTime _countDownreferenceTime;
+        private List<BrixControl> lstLevel = new List<BrixControl>();
 
-        int NumOfRows = 10; //12
-        int NumOfColumns = 15;//14
+        private int _numOfRows = 10;
+        private int _numOfColumns = 15;
 
-        DateTime lastTick;
+        private float _brixXSize;
+        private float _brixYSize;
+        private float _ballSize;
 
-        bool bGameOver = false;
+        private DateTime _lastTick = DateTime.Now;
+
+        private bool bGameOver = false;
 
 
         public int Lives { get; set; }
@@ -47,12 +54,18 @@ namespace CrackOut
             timer.Interval = TimeSpan.FromMilliseconds(1);
             timer.Tick += UpdateGame;
             timer.Start();
-            _gameState = State.StartGame;
+            _gameState = State.InitGame;
         }
 
-        private void StartLevel()
+        public void UpdateScreenSize(double screenWidth, double screenHeight)
         {
-            String level;
+            _brixXSize = (float)(screenWidth / (_numOfColumns + 2));
+            _brixYSize = _ballSize = _brixXSize / 3;
+        }
+
+        private void RenderLevel()
+        {
+            string level;
             using (StreamReader sr = new StreamReader("levels/level1.lvl"))
             {
                 level = sr.ReadToEnd();
@@ -60,23 +73,23 @@ namespace CrackOut
                 level = level.Replace("\n", string.Empty);
             }
             // Init all blocks, set positions and bounding boxes
-            for (int y = 0; y < NumOfRows; y++)
-                for (int x = 0; x < NumOfColumns; x++)
+            for (int y = 0; y < _numOfRows; y++)
+                for (int x = 0; x < _numOfColumns; x++)
                 {
-                    BrixType bt = (BrixType)Convert.ToInt32(level[x + (y) * (NumOfColumns)].ToString());
+                    BrixType bt = (BrixType)Convert.ToInt32(level[x + (y) * (_numOfColumns)].ToString());
 
                     if (bt != BrixType.none)
                     {
-                        BrixControl brix = new BrixControl(bt, GameField);
+                        BrixControl brix = new BrixControl(bt, GameField, _brixXSize, _brixYSize);
                         brix.position = new Vector2(
                         //LeftOffset + Widtg*x
-                        25f + 48 * x,
+                        _brixXSize * x,
                         //TopOffset + heigth*y
-                        85f + 16 * y);
+                        _brixYSize * y);
 
                         brix.brixBox = new BoundingBox(
                            brix.position,
-                            new Vector2(48f, 16f));
+                            new Vector2(_brixXSize, _brixYSize));
                         lstLevel.Add(brix);
                         brix.Draw();
                     }
@@ -84,22 +97,38 @@ namespace CrackOut
 
         }
 
+
         void UpdateGame(object sender, EventArgs e)
         {
+            DateTime now = DateTime.Now;
+            TimeSpan elapsed = now - _lastTick;
+            _gameElapsed += elapsed;
+            _lastTick = now;
+
             switch (_gameState)
             {
-                case State.StartGame:
+                case State.InitGame:
+                    CountDownOverlay = true;
                     _rocket.position = new Vector2(100, (float)GameField.ActualHeight - 50);
-                    _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(GameField.ActualHeight - 140));
+                    _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
                     _rocket.Draw();
-                    StartLevel();
-                    _gameState = State.InGame;
-                    Lives = 3;
+                    _ball.Draw();
+                    RenderLevel();
+                    _countDownreferenceTime = DateTime.Now.AddSeconds(4);
+                    _gameState = State.StartCountdown;
+                    break;
+
+                case State.StartCountdown:
+                    CountDown = (_countDownreferenceTime - DateTime.Now).Seconds;
+                    if (DateTime.Now > _countDownreferenceTime)
+                    {
+                        CountDownOverlay = false;
+                        _gameState = State.InGame;
+                        Lives = 3;
+                    }
                     break;
                 case State.InGame:
-                    DateTime now = DateTime.Now;
-                    TimeSpan elapsed = now - lastTick;
-                    lastTick = now;
+
                     CheckCollisions();
 
                     _ball.Draw();
@@ -109,7 +138,7 @@ namespace CrackOut
                     if (bGameOver)
                     {
                         //UCBall.fballSpeed = 1.5f;
-                        StartLevel();
+                        RenderLevel();
                     }
                     break;
             }
@@ -119,8 +148,8 @@ namespace CrackOut
         {
             //check ball collisions
             bool isHit = false;
-            float fNextPositionX = (float)(_ball.Position.X) + _ball.MovementX * _ball.Speed;
-            float fNextPositionY = (float)(_ball.Position.Y) + _ball.MovementY * _ball.Speed;
+            float fNextPositionX = (_ball.Position.X) + _ball.MovementX * _ball.Speed;
+            float fNextPositionY = (_ball.Position.Y) + _ball.MovementY * _ball.Speed;
 
             //with left and right wall
             if (fNextPositionX < 0 ||
@@ -131,7 +160,7 @@ namespace CrackOut
                 isHit = true;
             }
             // Top
-            if (fNextPositionY < 0)
+            else if (fNextPositionY < 0)
             {
                 _soundManager.Play("Pop2");
                 _ball.MovementY *= -1;
@@ -139,13 +168,13 @@ namespace CrackOut
             }
 
             // Bottom 
-            if (fNextPositionY + _ball.ActualHeight > GameField.ActualHeight)
+            else if (fNextPositionY + _ball.ActualHeight > GameField.ActualHeight)
             {
                 _soundManager.PlaySync("Miss");
 
                 Lives--;
-                fNextPositionX = 300;
-                fNextPositionY = (float)(GameField.ActualHeight / 2);
+                _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
+                return;
             }
             // with paddle
             _ball.CollisionBox.Update(new Vector2(fNextPositionX, fNextPositionY));
@@ -242,6 +271,4 @@ namespace CrackOut
             }
         }
     }
-
-
 }

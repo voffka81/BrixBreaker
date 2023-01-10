@@ -13,11 +13,14 @@ namespace CrackOut
         private BrixType _brixType;
         private Canvas _canvas;
 
-        public BrixControl(BrixType brixType, Canvas canvas)
+        public BrixControl(BrixType brixType, Canvas canvas, float width, float heigth)
         {
             _canvas = canvas;
             // Required to initialize variables
             InitializeComponent();
+
+            this.Width = width;
+            this.Height = heigth;
 
             _brixType = brixType;
             string sBrix = string.Empty;

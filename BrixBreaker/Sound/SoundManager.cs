@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Media;
-using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -57,8 +55,6 @@ namespace WPF.Sound
             }
 
         }
-        static BackgroundWorker bg;
-        static Thread t;
         static DispatcherTimer timer;
 
         public void Play(string file)
@@ -83,7 +79,6 @@ namespace WPF.Sound
         public void PlaySync(string file)
         {
             //bg = new BackgroundWorker();
-
 
             _player.Tag = file;
             _player.Stream = new MemoryStream();

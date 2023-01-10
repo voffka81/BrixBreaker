@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
 
 namespace WPF.Sound
@@ -36,7 +33,7 @@ namespace WPF.Sound
     class MediaFile
     {
 
-        byte[] HeaderData =new byte[44];
+        byte[] HeaderData = new byte[44];
         byte[] FileData;
         string actualName;
 
@@ -76,38 +73,38 @@ namespace WPF.Sound
         }
 
 
-         public MediaFile(string AudioFileName)
-         {
-                // open filestream to read
-                FileStream fs = new FileStream(AudioFileName, FileMode.Open);
-                // read all bytes to array
-                FileData = new byte[fs.Length];
-                fs.Read(FileData , 0, (int)fs.Length);
-                // close file stream
-                
-                actualName = Path.GetFileName(fs.Name);
-                int fileExtPos = actualName.LastIndexOf(".");
-                if (fileExtPos >= 0)
-                    actualName = actualName.Substring(0, fileExtPos);
-                fs.Close();
+        public MediaFile(string AudioFileName)
+        {
+            // open filestream to read
+            FileStream fs = new FileStream(AudioFileName, FileMode.Open);
+            // read all bytes to array
+            FileData = new byte[fs.Length];
+            fs.Read(FileData, 0, (int)fs.Length);
+            // close file stream
 
-             Array.Copy(FileData,HeaderData,HeaderData.Length);
-         }
+            actualName = Path.GetFileName(fs.Name);
+            int fileExtPos = actualName.LastIndexOf(".");
+            if (fileExtPos >= 0)
+                actualName = actualName.Substring(0, fileExtPos);
+            fs.Close();
 
-         private byte[] BlockCopy(byte[] Source, long Offset, long Bytes)
-         {
-             byte[] Destination = new byte[Bytes];
+            Array.Copy(FileData, HeaderData, HeaderData.Length);
+        }
 
-             try
-             {
-                 Array.Copy(Source, Offset, Destination, 0, Bytes);
-             }
-             catch (Exception ex)
-             {
-                 throw new Exception();
-             }
+        private byte[] BlockCopy(byte[] Source, long Offset, long Bytes)
+        {
+            byte[] Destination = new byte[Bytes];
 
-             return Destination;
-         }
+            try
+            {
+                Array.Copy(Source, Offset, Destination, 0, Bytes);
+            }
+            catch
+            {
+                throw new Exception();
+            }
+
+            return Destination;
+        }
     }
 }
