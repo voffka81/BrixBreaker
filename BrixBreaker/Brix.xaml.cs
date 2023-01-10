@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
@@ -36,7 +37,7 @@ namespace CrackOut
                     sBrix = "Green";
                     break;
             }
-            brixSprite.Fill = Resources[sBrix] as LinearGradientBrush;
+            brixSprite.Fill = Application.Current.MainWindow.Resources[sBrix] as LinearGradientBrush;
         }
 
         public void Draw()
@@ -54,11 +55,10 @@ namespace CrackOut
             {
                 case BrixType.Gray:
                     _brixType = BrixType.Orange;
-                    brixSprite.Fill = Resources["Orange"] as LinearGradientBrush;
+                    brixSprite.Fill = Application.Current.MainWindow.Resources["Orange"] as LinearGradientBrush;
                     break;
 
                 case BrixType.Green:
-                    break;
                 case BrixType.Orange:
                     Erase();
                     break;
@@ -71,11 +71,11 @@ namespace CrackOut
         {
             Storyboard BrixFadeOut = this.TryFindResource("Hide") as Storyboard;
             BrixFadeOut.Begin();
-            BrixFadeOut.Completed += new EventHandler(BrixFadeOut_Completed);
+            BrixFadeOut.Completed += new EventHandler(FadeOut_Completed);
 
         }
 
-        void BrixFadeOut_Completed(object sender, EventArgs e)
+        void FadeOut_Completed(object sender, EventArgs e)
         {
             _canvas.Children.Remove(this);
         }

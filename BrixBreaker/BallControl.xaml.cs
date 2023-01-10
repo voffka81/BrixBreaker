@@ -11,7 +11,7 @@ namespace CrackOut
         public float Speed = 3.5f;
         public float Center = 8;
 
-        private int _size = 16;
+        private float _size = 16;
         private Canvas _canvas;
         public BallControl(Canvas canvas)
         {
@@ -31,7 +31,7 @@ namespace CrackOut
                new Vector2((float)Ball.Width, (float)Ball.Width));
         }
 
-        public void SetSize(int size)
+        public void SetSize(float size)
         {
             _size = size;
             CalculateSize();

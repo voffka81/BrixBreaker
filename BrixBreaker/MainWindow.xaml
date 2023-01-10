@@ -7,6 +7,22 @@
         <local:GameManager/>
     </Window.DataContext>
     <Window.Resources>
+        <LinearGradientBrush x:Key="Green" EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="Green"/>
+            <GradientStop Color="#FFDCFFBB" Offset="0.5"/>
+            <GradientStop Color="Green" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Orange" EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="Orange"/>
+            <GradientStop Color="#FFFFE7BB" Offset="0.5"/>
+            <GradientStop Color="Orange" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="Gray" EndPoint="0.5,1" StartPoint="0.5,0">
+            <GradientStop Color="Gray"/>
+            <GradientStop Color="#FFFFE7BB" Offset="0.5"/>
+            <GradientStop Color="Gray" Offset="1"/>
+        </LinearGradientBrush>
+        
         <local:BoolToVisibility x:Key="BoolToVisibility"/>
         <ImageBrush x:Key="BorderBrush" ImageSource="Sprites/BlockWall.PNG" ViewportUnits="Absolute" Viewport="0,0,32,32" TileMode="Tile"/>
     </Window.Resources>
@@ -42,7 +58,7 @@
         <Rectangle Grid.Row="2" Grid.Column="2" x:Name="RightBorder" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BorderBrush}"/>
         <Rectangle Grid.Row="1" Grid.ColumnSpan="3" x:Name="UpperBorder" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Fill="{StaticResource BorderBrush}"/>
         <ContentPresenter x:Name="Field" Grid.Row="2" Grid.Column="1" Grid.RowSpan="2" Content="{Binding GameField,Mode=TwoWay}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"/>
-        <Border Grid.RowSpan="3" Grid.ColumnSpan="3" Background="#99292626" Visibility="{Binding CountDownOverlay,Converter={StaticResource BoolToVisibility}}">
+        <Border Grid.RowSpan="3" Grid.ColumnSpan="3" Background="#99292626" Visibility="{Binding Overlay,Converter={StaticResource BoolToVisibility}}">
             <TextBlock x:Name="countDown" Text="{Binding CountDown}" Foreground="White" FontSize="72" VerticalAlignment="Center" HorizontalAlignment="Center"/>
         </Border>
     </Grid>

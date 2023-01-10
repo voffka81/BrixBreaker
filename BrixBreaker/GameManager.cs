@@ -11,15 +11,16 @@ namespace CrackOut
     [AddINotifyPropertyChangedInterface]
     public class GameManager
     {
-        public enum State { Menu, InitGame, StartCountdown, InGame, GameOver };
+        public enum State { Menu, InitGame, StartCountdown, InGame, LostLive, GameOver };
         private TimeSpan _gameElapsed = TimeSpan.Zero;
         private State _gameState;
         public static SoundManager _soundManager;
 
         public int CountDown { get; set; }
-        public bool CountDownOverlay { get; set; } = true;
+        public bool Overlay { get; set; } = true;
         private DateTime _countDownreferenceTime;
         private List<BrixControl> lstLevel = new List<BrixControl>();
+        private List<PrizeBox> _prizeBoxes = new List<PrizeBox>();
 
         private int _numOfRows = 10;
         private int _numOfColumns = 15;
@@ -83,9 +84,9 @@ namespace CrackOut
                         BrixControl brix = new BrixControl(bt, GameField, _brixXSize, _brixYSize);
                         brix.position = new Vector2(
                         //LeftOffset + Widtg*x
-                        _brixXSize * x,
+                         _brixXSize * x,
                         //TopOffset + heigth*y
-                        _brixYSize * y);
+                         _brixYSize * y);
 
                         brix.brixBox = new BoundingBox(
                            brix.position,
@@ -97,7 +98,6 @@ namespace CrackOut
 
         }
 
-
         void UpdateGame(object sender, EventArgs e)
         {
             DateTime now = DateTime.Now;
@@ -108,10 +108,11 @@ namespace CrackOut
             switch (_gameState)
             {
                 case State.InitGame:
-                    CountDownOverlay = true;
+                    Overlay = true;
                     _rocket.position = new Vector2(100, (float)GameField.ActualHeight - 50);
                     _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
                     _rocket.Draw();
+                    _ball.SetSize(_ballSize);
                     _ball.Draw();
                     RenderLevel();
                     _countDownreferenceTime = DateTime.Now.AddSeconds(4);
@@ -122,7 +123,7 @@ namespace CrackOut
                     CountDown = (_countDownreferenceTime - DateTime.Now).Seconds;
                     if (DateTime.Now > _countDownreferenceTime)
                     {
-                        CountDownOverlay = false;
+                        Overlay = false;
                         _gameState = State.InGame;
                         Lives = 3;
                     }
@@ -131,9 +132,33 @@ namespace CrackOut
 
                     CheckCollisions();
 
+                    foreach (var item in _prizeBoxes.ToArray())
+                    {
+                        item.Draw();
+                        if (item.boundingBox.Intersects(_rocket.Boundings))
+                        {
+                            item.Erase();
+                            _prizeBoxes.Remove(item);
+                            _ball.SetSize(_ballSize * 2);
+                        }
+                        if (item.position.Y - item.boundingBox.Max.Y > GameField.ActualHeight)
+                        {
+                            item.Erase();
+                            _prizeBoxes.Remove(item);
+                        }
+                    }
+
                     _ball.Draw();
                     break;
 
+                case State.LostLive:
+                    Lives -= 1;
+                    _prizeBoxes.ForEach(x => x.Erase());
+                    _prizeBoxes.Clear();
+                    _ball.SetSize(_ballSize);
+                    _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
+                    _gameState = State.InGame;
+                    break;
                 default:
                     if (bGameOver)
                     {
@@ -172,21 +197,17 @@ namespace CrackOut
             {
                 _soundManager.PlaySync("Miss");
 
-                Lives--;
-                _ball.Position = new Vector2((float)(_rocket.position.X + _rocket.Width / 2), (float)(_rocket.position.Y - _rocket.Height));
+                _gameState = State.LostLive;
                 return;
             }
             // with paddle
             _ball.CollisionBox.Update(new Vector2(fNextPositionX, fNextPositionY));
 
-            BoundingBox paddleBox = new BoundingBox(new Vector2(_rocket.position.X, _rocket.position.Y),
-                new Vector2((float)_rocket.ActualWidth, (float)_rocket.ActualHeight));
-
-            if (_ball.CollisionBox.Intersects(paddleBox))
+            if (_ball.CollisionBox.Intersects(_rocket.Boundings))
             {
                 isHit = true;
                 _soundManager.Play("Pop1");
-                float x = (paddleBox.Max.X - (_ball.CollisionBox.Min.X + (float)_ball.ActualWidth / 2)) / (float)_rocket.Width;
+                float x = (_rocket.Boundings.Max.X - (_ball.CollisionBox.Min.X + (float)_ball.ActualWidth / 2)) / (float)_rocket.Width;
                 double theta = Lerp((float)Math.PI / 4, (float)(Math.PI - Math.PI / 4), x);
 
                 _ball.MovementX = (float)Math.Cos(theta);
@@ -199,37 +220,7 @@ namespace CrackOut
                 BrixControl brix = lstLevel[icount];
 
                 if (brix.brixBox.Intersects(_ball.CollisionBox))
-                {
-                    isHit = true;
-                    //Right
-                    if (Math.Abs((brix.brixBox.Max.X - _ball.CollisionBox.Min.X)) < _ball.Center)
-                        _ball.MovementX *= -1;
-                    else if (Math.Abs(brix.brixBox.Min.X - _ball.CollisionBox.Max.X) <
-                                _ball.Center)
-                        _ball.MovementX *= -1;
-                    //Bottom
-                    else if (Math.Abs(brix.brixBox.Max.Y - _ball.CollisionBox.Min.Y) <
-                            _ball.Center)
-                        _ball.MovementY *= -1;
-                    //Top
-                    else if (Math.Abs(brix.brixBox.Min.Y - _ball.CollisionBox.Max.Y) <
-                                _ball.Center)
-                    {
-                        _ball.MovementY *= -1;
-                    }
-                    Scores += 1;
-                    switch (brix.Hit())
-                    {
-                        case BrixType.Green:
-                            fNextPositionY += 16;
-                            _ball.SetSize(32);
-                            break;
-                        case BrixType.Orange:
-                            lstLevel.Remove(brix);
-                            break;
-                    }
-
-                }
+                    isHit = HitBrix(ref fNextPositionY, brix);
             }
             #endregion
             if (lstLevel.Count == 0)
@@ -241,6 +232,49 @@ namespace CrackOut
 
             if (Lives < 0)
                 _gameState = State.GameOver;
+        }
+
+        private bool HitBrix(ref float fNextPositionY, BrixControl brix)
+        {
+            bool isHit;
+            {
+                isHit = true;
+                //Right
+                if (Math.Abs((brix.brixBox.Max.X - _ball.CollisionBox.Min.X)) < _ball.Center)
+                    _ball.MovementX *= -1;
+                else if (Math.Abs(brix.brixBox.Min.X - _ball.CollisionBox.Max.X) <
+                            _ball.Center)
+                    _ball.MovementX *= -1;
+                //Bottom
+                else if (Math.Abs(brix.brixBox.Max.Y - _ball.CollisionBox.Min.Y) <
+                        _ball.Center)
+                    _ball.MovementY *= -1;
+                //Top
+                else if (Math.Abs(brix.brixBox.Min.Y - _ball.CollisionBox.Max.Y) <
+                            _ball.Center)
+                {
+                    _ball.MovementY *= -1;
+                }
+                Scores += 1;
+
+                if (_prizeBoxes.Count == 0)
+                    _prizeBoxes.Add(new PrizeBox(GameField, brix.position));
+
+                switch (brix.Hit())
+                {
+
+                    case BrixType.Green:
+                        fNextPositionY += 16;
+
+                        break;
+                    case BrixType.Orange:
+                        lstLevel.Remove(brix);
+                        break;
+                }
+
+            }
+
+            return isHit;
         }
 
         private float Lerp(float value1, float value2, float amount)
