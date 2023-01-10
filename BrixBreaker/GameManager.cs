@@ -258,8 +258,7 @@ namespace CrackOut
                         brix.SetType(BrixType.Orange);
                         break;
                     case BrixType.Green:
-                        if (_prizeBoxes.Count == 0)
-                            _prizeBoxes.Add(new PrizeBox(GameField, brix.position));
+                        _prizeBoxes.Add(new PrizeBox(GameField, brix.position));
                         brix.Erase();
                         lstLevel.Remove(brix);
                         break;
